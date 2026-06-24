@@ -12,7 +12,14 @@ export default function LandingPage() {
   const [mounted, setMounted] = useState(false)
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
-  useEffect(() => { setTimeout(() => setMounted(true), 0) }, [])
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.has('code')) {
+      window.location.href = '/auth/callback' + window.location.search
+      return
+    }
+    setTimeout(() => setMounted(true), 0)
+  }, [])
 
   return (
     <div className="min-h-screen bg-background">
