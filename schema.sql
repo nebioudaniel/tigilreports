@@ -33,6 +33,8 @@ CREATE TABLE public.invites (
     company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
     email TEXT NOT NULL,
     role TEXT DEFAULT 'member',
+    full_name TEXT,
+    job_title TEXT,
     invited_by UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     accepted BOOLEAN DEFAULT false,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
@@ -51,13 +53,19 @@ CREATE TABLE public.subscriptions (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
--- 5. Reports Table (assuming basic structure)
+-- 5. Reports Table
 CREATE TABLE public.reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     company_id UUID NOT NULL REFERENCES public.companies(id) ON DELETE CASCADE,
     title TEXT NOT NULL,
     type TEXT,
     content JSONB,
+    ai_output JSONB,
+    input_data JSONB,
+    date_from TIMESTAMP WITH TIME ZONE,
+    date_to TIMESTAMP WITH TIME ZONE,
+    status TEXT DEFAULT 'published',
+    is_public BOOLEAN DEFAULT false,
     created_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );

@@ -66,7 +66,7 @@ export default function OnboardingPage() {
   })
   const [createdCompanyId, setCreatedCompanyId] = useState<string | null>(null)
   const [userEmail, setUserEmail] = useState('')
-  const [pendingInvite, setPendingInvite] = useState<{id: string, company_id: string, role: string, company_name?: string} | null>(null)
+  const [pendingInvite, setPendingInvite] = useState<{id: string, company_id: string, role: string, full_name?: string | null, job_title?: string | null, company_name?: string} | null>(null)
   const [initialLoad, setInitialLoad] = useState(true)
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,7 +75,18 @@ export default function OnboardingPage() {
       const supabase = getSupabase()
       const { data: { user } } = await supabase.auth.getUser()
       if (!user?.email) {
-        setInitialLoad(false)
+        router.replace('/login')
+        return
+      }
+      // Skip onboarding entirely if user already completed setup
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('onboarding_completed, company_id')
+        .eq('id', user.id)
+        .single()
+      const p = profile as { onboarding_completed?: boolean; company_id?: string } | null
+      if (p?.onboarding_completed && p?.company_id) {
+        router.replace('/dashboard')
         return
       }
       const { data: invite } = await supabase
@@ -107,6 +118,8 @@ export default function OnboardingPage() {
       await supabase.from('profiles').update({
         company_id: pendingInvite.company_id,
         role: pendingInvite.role,
+        full_name: pendingInvite.full_name || undefined,
+        job_title: pendingInvite.job_title || undefined,
         onboarding_completed: true,
       }).eq('id', user.id)
       

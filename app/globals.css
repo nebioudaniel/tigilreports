@@ -163,3 +163,20 @@
     @apply font-sans;
   }
 }
+
+/* ============================================
+   PRINT — clean PDF export for reports
+   ============================================ */
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+  main {
+    padding: 0 !important;
+  }
+  body {
+    background: white !important;
+  }
+}

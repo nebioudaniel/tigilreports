@@ -38,7 +38,7 @@ export default function RegisterPage() {
   async function handleEmailSignUp(e: React.FormEvent) {
     e.preventDefault()
     setLoading(true)
-    const { error } = await getSupabase().auth.signUp({
+    const { data, error } = await getSupabase().auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` }
@@ -48,8 +48,13 @@ export default function RegisterPage() {
       setLoading(false)
       return
     }
-    toast.success('Account created! Check your email.')
-    router.push('/onboarding')
+    if (data.session) {
+      toast.success('Account created!')
+      router.push('/onboarding')
+    } else {
+      toast.success('Account created! Check your email to confirm, then sign in.')
+      setLoading(false)
+    }
   }
 
   return (

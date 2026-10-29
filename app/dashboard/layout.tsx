@@ -9,19 +9,34 @@ import { createClient } from '@/lib/supabase/client'
 import { useTheme } from 'next-themes'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { toast } from 'sonner'
 import {
   LayoutDashboard, FileText, Plus, Users, Settings,
-  Sun, Moon, LogOut, Menu, X,
+  Sun, Moon, LogOut, Menu, X, UserPlus, ClipboardList,
 } from 'lucide-react'
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
-  { icon: FileText, label: 'My Reports', href: '/dashboard/reports' },
-  { icon: Plus, label: 'Create Report', href: '/dashboard/create' },
-  { icon: Users, label: 'Team', href: '/dashboard/team' },
-  { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+const navGroups = [
+  {
+    label: 'Workspace',
+    items: [
+      { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
+      { icon: FileText, label: 'My Reports', href: '/dashboard/reports' },
+    ],
+  },
+  {
+    label: 'Build',
+    items: [
+      { icon: Plus, label: 'Create Report', href: '/dashboard/create' },
+      { icon: ClipboardList, label: 'Forms', href: '/dashboard/forms' },
+      { icon: UserPlus, label: 'Staff', href: '/dashboard/team' },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
+    ],
+  },
 ]
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -59,6 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     router.push('/login')
   }
 
+  const navItems = navGroups.flatMap(g => g.items)
   const currentPage = navItems.find(
     item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
   )?.label || 'Dashboard'
@@ -68,56 +84,68 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <div className="min-h-screen flex">
       <aside className={`fixed inset-y-0 left-0 z-40 w-60 bg-surface border-r border-border/50 flex flex-col transition-transform duration-200 md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="p-6 border-b border-border/50">
+        <div className="px-6 h-[65px] flex items-center border-b border-border/50">
           <Link href="/dashboard" className="flex items-center gap-1">
-            <span className="text-lg font-bold text-primary">Tigil</span>
+            <span className="text-lg font-bold text-foreground">Tigil</span>
             <span className="text-xs text-muted-foreground">Reports</span>
           </Link>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1">
-          {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
-                  isActive
-                    ? 'bg-primary/10 text-primary font-medium'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
-                }`}
-              >
-                <item.icon size={18} />
-                {item.label}
-              </Link>
-            )
-          })}
+        <nav className="flex-1 px-4 py-5 space-y-6 overflow-y-auto">
+          {navGroups.map((group) => (
+            <div key={group.label} className="space-y-1">
+              <div className="px-3 text-[10px] uppercase tracking-widest text-muted-foreground/60 font-medium mb-1">
+                {group.label}
+              </div>
+              {group.items.map((item) => {
+                const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setSidebarOpen(false)}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-full text-sm transition-all duration-200 ${
+                      isActive
+                        ? 'bg-foreground text-background font-medium shadow-sm'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-foreground/5'
+                    }`}
+                  >
+                    <item.icon size={17} />
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-4 border-t border-border/50">
           <div className="flex items-center gap-3 px-3 py-2">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="text-xs bg-primary/10 text-primary">{initials}</AvatarFallback>
+            <Avatar className="h-9 w-9">
+              <AvatarFallback className="text-xs bg-foreground/5 text-foreground border border-border/50">{initials}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-medium truncate">{user.name}</div>
-              <Badge variant="outline" className="text-[10px] px-1.5 py-0 capitalize">{user.plan}</Badge>
+              <div className="text-[10px] text-muted-foreground capitalize">{user.plan} plan</div>
             </div>
+            {mounted && (
+              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                {theme === 'dark' ? <Sun size={13} /> : <Moon size={13} />}
+              </Button>
+            )}
           </div>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2 mt-1 rounded-lg text-sm text-muted-foreground hover:text-foreground hover:bg-foreground/5 w-full transition-all duration-200"
+            className="flex items-center gap-3 px-3 py-2 mt-1 rounded-full text-sm text-muted-foreground hover:text-foreground hover:bg-foreground/5 w-full transition-all duration-200"
           >
-            <LogOut size={18} />
+            <LogOut size={16} />
             Log out
           </button>
         </div>
       </aside>
 
       <div className="flex-1 md:ml-60">
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border/50">
+        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-md border-b border-border/50">
           <div className="flex items-center justify-between h-16 px-6">
             <div className="flex items-center gap-4">
               <Button
@@ -128,26 +156,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               >
                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </Button>
-              <h1 className="text-lg font-medium">{currentPage}</h1>
+              <h1 className="text-base font-semibold tracking-tight">{currentPage}</h1>
             </div>
             <div className="flex items-center gap-3">
-              {mounted && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                >
-                  {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-                </Button>
-              )}
               <Avatar className="h-8 w-8 cursor-pointer">
-                <AvatarFallback className="text-xs bg-primary/10 text-primary">{initials}</AvatarFallback>
+                <AvatarFallback className="text-xs bg-foreground/5 text-foreground border border-border/50">{initials}</AvatarFallback>
               </Avatar>
             </div>
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-6 md:p-8">
           {children}
         </main>
       </div>
